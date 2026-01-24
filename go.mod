@@ -1,3 +1,3 @@
+module go-category-api
 
-go mod init go-category-api
-go mod tidy
+go 1.22
