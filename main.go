@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
+	"strings",
+	"os"
 )
 
 // Category represents a category in the system
@@ -60,8 +61,13 @@ func main() {
 		})
 	})
 
-	fmt.Println("Server running di localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+    port := os.Getenv("PORT")
+    if port == "" {
+      port = "8080"
+    }
+
+    fmt.Println("Server running di localhost:", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		fmt.Println("gagal running server:", err)
 	}
 }
