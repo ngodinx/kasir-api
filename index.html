@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VowProxy OSS - Image Converter</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Styles for Ranges to match React version */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #4f46e5;
+            /* indigo-600 */
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #e2e8f0;
+            /* slate-200 */
+            border-radius: 999px;
+        }
+
+        /* Smooth transitions */
+        .transition-all-300 {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-800 pb-20 selection:bg-indigo-100">
+
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <i data-lucide="layers" class="text-white" width="20"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight text-slate-900">VowProxy <span
+                            class="text-slate-400 font-light">OSS</span></h1>
+                    <p class="text-xs text-slate-500 font-medium">Free Features Only</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-4">
+                <div
+                    class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-500">
+                    <span id="server-status-dot" class="w-2 h-2 rounded-full bg-amber-500 transition-colors"></span>
+                    <span id="server-status-text">Simulation</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- === LEFT COLUMN: Controls === -->
+        <div class="lg:col-span-5 space-y-8">
+
+            <!-- 1. Server & Source -->
+            <section>
+                <!-- Server Config Card -->
+                <div class="bg-slate-900 text-white border border-slate-800 rounded-[2rem] shadow-sm p-6 mb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold flex items-center gap-2 text-sm">
+                            <i data-lucide="server" class="text-indigo-400" width="16"></i> ImgProxy Host
+                        </h3>
+                        <button id="btn-toggle-server"
+                            class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-lg transition-colors cursor-pointer">
+                            Switch Mode
+                        </button>
+                    </div>
+                    <input id="input-base-url" type="text" value="http://localhost:8080" disabled
+                        class="w-full bg-slate-800/50 p-3 rounded-xl text-xs font-mono border-none outline-none focus:ring-1 focus:ring-indigo-500 text-slate-500 cursor-not-allowed transition-all placeholder:text-slate-600 mb-2">
+                    <p id="server-hint" class="text-[10px] text-amber-500/80 transition-opacity">*Mode simulasi aktif.
+                        Ganti mode untuk koneksi server nyata.</p>
+                </div>
+
+                <!-- Source URL Card -->
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6">
+                    <div class="mb-0">
+                        <label
+                            class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Source
+                            URL</label>
+                        <div class="relative">
+                            <input id="input-source-url" type="text"
+                                value="https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+                                class="w-full bg-slate-50 p-4 pl-4 pr-10 rounded-2xl text-xs font-medium text-slate-700 border-none outline-none focus:ring-2 focus:ring-indigo-500 truncate">
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                <i data-lucide="image" width="16"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Basic Geometry -->
+            <section>
+                <h3 class="text-lg font-bold text-slate-900 mb-4 px-1 flex items-center gap-2">
+                    <i data-lucide="maximize-2" class="text-indigo-600" width="20"></i> Geometry
+                </h3>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="mb-5">
+                            <label
+                                class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Width</label>
+                            <input id="input-width" type="number" value="600"
+                                class="w-full bg-slate-50 py-3 px-4 rounded-2xl font-bold text-slate-700 text-center outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="mb-5">
+                            <label
+                                class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Height</label>
+                            <input id="input-height" type="number" value="400"
+                                class="w-full bg-slate-50 py-3 px-4 rounded-2xl font-bold text-slate-700 text-center outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label
+                            class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Resize
+                            Mode</label>
+                        <div class="relative group">
+                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-600">
+                                <i data-lucide="maximize-2" width="20"></i>
+                            </div>
+                            <select id="select-resize"
+                                class="w-full bg-slate-50 hover:bg-slate-100 transition-colors text-slate-700 font-medium py-4 pl-12 pr-10 rounded-2xl border-none outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer">
+                                <option value="fit">Fit (Preserve Ratio)</option>
+                                <option value="fill">Fill (Crop Center)</option>
+                                <option value="auto">Auto</option>
+                                <option value="force">Force (Distort)</option>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                <i data-lucide="chevron-right" width="16" class="rotate-90"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label
+                            class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Gravity
+                            (Focus Point)</label>
+                        <div class="relative group">
+                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-600">
+                                <i data-lucide="grid" width="20"></i>
+                            </div>
+                            <select id="select-gravity"
+                                class="w-full bg-slate-50 hover:bg-slate-100 transition-colors text-slate-700 font-medium py-4 pl-12 pr-10 rounded-2xl border-none outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer">
+                                <option value="ce">Center</option>
+                                <option value="sm" selected>Smart (Libvips)</option>
+                                <option value="no">North</option>
+                                <option value="so">South</option>
+                                <option value="we">West</option>
+                                <option value="ea">East</option>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                <i data-lucide="chevron-right" width="16" class="rotate-90"></i>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 ml-1">*Gravity 'Smart' versi gratis menggunakan
+                            deteksi tepi.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Transform & Paint -->
+            <section>
+                <h3 class="text-lg font-bold text-slate-900 mb-4 px-1 flex items-center gap-2">
+                    <i data-lucide="rotate-cw" class="text-indigo-600" width="20"></i> Transform & Paint
+                </h3>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 space-y-4">
+
+                    <!-- Rotation -->
+                    <div class="flex items-center justify-between">
+                        <label
+                            class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Rotation</label>
+                        <div class="flex bg-slate-50 rounded-xl p-1" id="rotation-group">
+                            <button data-deg="0"
+                                class="rotation-btn px-3 py-2 rounded-lg text-xs font-bold transition-all bg-white shadow text-indigo-600">0°</button>
+                            <button data-deg="90"
+                                class="rotation-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">90°</button>
+                            <button data-deg="180"
+                                class="rotation-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">180°</button>
+                            <button data-deg="270"
+                                class="rotation-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">270°</button>
+                        </div>
+                    </div>
+
+                    <!-- BG Color -->
+                    <div class="flex items-center justify-between">
+                        <label
+                            class="block text-slate-400 text-xs font-semibold tracking-wider uppercase mb-2 ml-1">Background
+                            Color</label>
+                        <div
+                            class="flex items-center gap-3 bg-slate-50 pl-4 pr-1 py-1 rounded-2xl border border-slate-100">
+                            <span id="bg-color-display" class="font-mono text-xs text-slate-500">#ffffff</span>
+                            <input id="input-bg-color" type="color" value="#ffffff"
+                                class="w-8 h-8 rounded-full border-none cursor-pointer bg-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Padding -->
+                    <div class="mb-0 pt-2">
+                        <div class="bg-slate-50 rounded-2xl p-4 mb-3">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-slate-500 text-xs font-bold uppercase tracking-wide">Padding
+                                    (px)</span>
+                                <span id="val-padding" class="text-indigo-600 font-bold text-xs">0</span>
+                            </div>
+                            <input id="input-padding" type="range" min="0" max="100" value="0" class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Free Filters -->
+            <section>
+                <h3 class="text-lg font-bold text-slate-900 mb-4 px-1 flex items-center gap-2">
+                    <i data-lucide="scissors" class="text-indigo-600" width="20"></i> Free Filters
+                </h3>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6">
+                    <div class="grid grid-cols-1 gap-4">
+                        <!-- Blur -->
+                        <div class="bg-slate-50 rounded-2xl p-4 mb-3">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-slate-500 text-xs font-bold uppercase tracking-wide">Blur
+                                    (Sigma)</span>
+                                <span id="val-blur" class="text-indigo-600 font-bold text-xs">0</span>
+                            </div>
+                            <input id="input-blur" type="range" min="0" max="20" value="0" class="w-full">
+                        </div>
+
+                        <!-- Sharpen -->
+                        <div class="bg-slate-50 rounded-2xl p-4 mb-3">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-slate-500 text-xs font-bold uppercase tracking-wide">Sharpen
+                                    (Sigma)</span>
+                                <span id="val-sharpen" class="text-indigo-600 font-bold text-xs">0</span>
+                            </div>
+                            <input id="input-sharpen" type="range" min="0" max="5" step="0.1" value="0" class="w-full">
+                        </div>
+
+                        <!-- Pixelate -->
+                        <div class="bg-slate-50 rounded-2xl p-4 mb-3">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-slate-500 text-xs font-bold uppercase tracking-wide">Pixelate
+                                    (Size)</span>
+                                <span id="val-pixelate" class="text-indigo-600 font-bold text-xs">0</span>
+                            </div>
+                            <input id="input-pixelate" type="range" min="0" max="20" value="0" class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Output Settings -->
+            <section>
+                <h3 class="text-lg font-bold text-slate-900 mb-4 px-1 flex items-center gap-2">
+                    <i data-lucide="download" class="text-indigo-600" width="20"></i> Export
+                </h3>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 space-y-4">
+                    <div class="grid grid-cols-4 gap-2" id="format-group">
+                        <button data-fmt="jpg"
+                            class="format-btn py-3 rounded-xl text-xs font-bold uppercase transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-200">jpg</button>
+                        <button data-fmt="png"
+                            class="format-btn py-3 rounded-xl text-xs font-bold uppercase transition-all bg-slate-50 text-slate-500 hover:bg-slate-100">png</button>
+                        <button data-fmt="webp"
+                            class="format-btn py-3 rounded-xl text-xs font-bold uppercase transition-all bg-slate-50 text-slate-500 hover:bg-slate-100">webp</button>
+                        <button data-fmt="avif"
+                            class="format-btn py-3 rounded-xl text-xs font-bold uppercase transition-all bg-slate-50 text-slate-500 hover:bg-slate-100">avif</button>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl p-4 mb-3">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wide">Quality (%)</span>
+                            <span id="val-quality" class="text-indigo-600 font-bold text-xs">80</span>
+                        </div>
+                        <input id="input-quality" type="range" min="10" max="100" value="80" class="w-full">
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- === RIGHT COLUMN: Preview === -->
+        <div class="lg:col-span-7 space-y-6 lg:sticky lg:top-24 h-fit">
+
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="text-2xl font-bold text-slate-900">Live Preview</h2>
+                <div class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                    <span id="preview-dim-text">600 x 400</span>
+                </div>
+            </div>
+
+            <!-- Main Preview Canvas -->
+            <div
+                class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-100 relative group">
+
+                <!-- Toolbar Fake -->
+                <div
+                    class="bg-white/90 backdrop-blur border-b border-slate-100 px-6 py-4 flex items-center justify-between absolute top-0 w-full z-20">
+                    <div class="flex gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-200 group-hover:bg-red-400 transition-colors">
+                        </div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-200 group-hover:bg-amber-400 transition-colors">
+                        </div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-200 group-hover:bg-emerald-400 transition-colors">
+                        </div>
+                    </div>
+                    <div
+                        class="bg-slate-100 px-3 py-1 rounded-md text-[10px] text-slate-500 font-mono flex items-center gap-2">
+                        <i data-lucide="zap" width="10" class="text-amber-500"></i> OSS Features Active
+                    </div>
+                </div>
+
+                <!-- Canvas Area -->
+                <div class="relative w-full h-[600px] bg-[#f0f2f5] flex items-center justify-center overflow-hidden">
+                    <!-- Checkerboard Pattern -->
+                    <div class="absolute inset-0 opacity-20"
+                        style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px;">
+                    </div>
+
+                    <!-- Image Container -->
+                    <div id="preview-wrapper"
+                        class="relative transition-all duration-300 shadow-2xl origin-center flex items-center justify-center">
+                        <img id="preview-image" src="" alt="Preview" class="block object-contain"
+                            style="max-width: none; max-height: none;">
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div
+                    class="absolute bottom-0 w-full bg-white/90 backdrop-blur p-6 border-t border-slate-100 flex justify-between items-center z-20">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Final Size
+                            Estimate</div>
+                        <div class="text-lg font-bold text-slate-800">
+                            <span id="estimate-format">JPG</span> <span class="text-slate-300">/</span> <span
+                                id="estimate-size">~10 KB</span>
+                        </div>
+                    </div>
+                    <a id="btn-download" href="#" target="_blank"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-3 font-bold shadow-lg shadow-indigo-200 transition-all flex items-center gap-2 text-sm no-underline">
+                        <i data-lucide="download" width="18"></i> Download
+                    </a>
+                </div>
+            </div>
+
+            <!-- Code Snippet -->
+            <div class="bg-slate-900 border border-slate-800 rounded-[2rem] shadow-sm p-6 pt-4 pb-4">
+                <div class="flex justify-between items-center mb-3 text-white">
+                    <h3 class="font-bold text-sm flex items-center gap-2">
+                        <i data-lucide="aperture" width="16" class="text-indigo-400"></i> Generated URL
+                    </h3>
+                    <button id="btn-copy"
+                        class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors text-slate-300 flex items-center gap-2">
+                        <i data-lucide="copy" width="12" id="icon-copy"></i>
+                        <span id="text-copy">Copy</span>
+                    </button>
+                </div>
+                <div class="bg-black/30 rounded-lg p-3 font-mono text-[10px] leading-relaxed text-slate-400 break-all border border-white/5"
+                    id="output-url">
+                    Loading...
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            baseUrl: 'http://localhost:8080',
+            useRealServer: false,
+            sourceUrl: 'https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
+            width: 600,
+            height: 400,
+            resizeType: 'fit',
+            gravity: 'sm',
+            rotation: 0,
+            bgColor: '#ffffff',
+            padding: 0,
+            blur: 0,
+            sharpen: 0,
+            pixelate: 0,
+            extension: 'jpg',
+            quality: 80
+        };
+
+        // --- Elements Selection ---
+        const els = {
+            serverStatusDot: document.getElementById('server-status-dot'),
+            serverStatusText: document.getElementById('server-status-text'),
+            btnToggleServer: document.getElementById('btn-toggle-server'),
+            inputBaseUrl: document.getElementById('input-base-url'),
+            serverHint: document.getElementById('server-hint'),
+
+            inputSource: document.getElementById('input-source-url'),
+            inputWidth: document.getElementById('input-width'),
+            inputHeight: document.getElementById('input-height'),
+            selectResize: document.getElementById('select-resize'),
+            selectGravity: document.getElementById('select-gravity'),
+
+            rotationBtns: document.querySelectorAll('.rotation-btn'),
+            inputBgColor: document.getElementById('input-bg-color'),
+            displayBgColor: document.getElementById('bg-color-display'),
+
+            inputPadding: document.getElementById('input-padding'),
+            valPadding: document.getElementById('val-padding'),
+
+            inputBlur: document.getElementById('input-blur'),
+            valBlur: document.getElementById('val-blur'),
+
+            inputSharpen: document.getElementById('input-sharpen'),
+            valSharpen: document.getElementById('val-sharpen'),
+
+            inputPixelate: document.getElementById('input-pixelate'),
+            valPixelate: document.getElementById('val-pixelate'),
+
+            formatBtns: document.querySelectorAll('.format-btn'),
+            inputQuality: document.getElementById('input-quality'),
+            valQuality: document.getElementById('val-quality'),
+
+            previewDimText: document.getElementById('preview-dim-text'),
+            previewWrapper: document.getElementById('preview-wrapper'),
+            previewImage: document.getElementById('preview-image'),
+
+            estimateFormat: document.getElementById('estimate-format'),
+            estimateSize: document.getElementById('estimate-size'),
+            btnDownload: document.getElementById('btn-download'),
+
+            btnCopy: document.getElementById('btn-copy'),
+            iconCopy: document.getElementById('icon-copy'),
+            textCopy: document.getElementById('text-copy'),
+            outputUrl: document.getElementById('output-url')
+        };
+
+        // --- Main Logic ---
+
+        function updateUI() {
+            // 1. Build URL Logic
+            const ops = [];
+
+            // Resize
+            // rs:<type>:<width>:<height>:<enlarge>:<extend> (enlarge=0 default for simplicity)
+            ops.push(`rs:${state.resizeType}:${state.width}:${state.height}:0:0`);
+
+            // Gravity
+            ops.push(`g:${state.gravity}`);
+
+            // Rotation
+            if (state.rotation > 0) ops.push(`rot:${state.rotation}`);
+
+            // Padding
+            if (state.padding > 0) ops.push(`pd:${state.padding}:${state.padding}:${state.padding}:${state.padding}`);
+
+            // BG Color
+            if (state.bgColor !== '#ffffff') ops.push(`bg:${state.bgColor.replace('#', '')}`);
+
+            // Blur
+            if (state.blur > 0) ops.push(`bl:${state.blur}`);
+
+            // Sharpen
+            if (state.sharpen > 0) ops.push(`sh:${state.sharpen}`);
+
+            // Pixelate
+            if (state.pixelate > 0) ops.push(`pix:${state.pixelate}`);
+
+            // Quality
+            if (state.quality < 100) ops.push(`q:${state.quality}`);
+
+            // Construct Final Path
+            const encodedUrl = encodeURIComponent(state.sourceUrl);
+            const extPart = state.extension === 'original' ? '' : `@${state.extension}`;
+            const cleanBase = state.baseUrl.replace(/\/$/, '');
+            const finalPath = `/insecure/${ops.join('/')}/${extPart}/plain/${encodedUrl}`;
+            const fullUrl = `${cleanBase}${finalPath}`;
+
+            // 2. Update Output Text
+            els.outputUrl.textContent = fullUrl;
+            els.btnDownload.href = fullUrl;
+            els.estimateFormat.textContent = state.extension.toUpperCase();
+
+            // Simple size calculation estimate logic from React
+            const sizeKb = Math.round((state.width * state.height * 0.0001) * (state.quality / 100));
+            els.estimateSize.textContent = `~${sizeKb} KB`;
+
+            els.previewDimText.textContent = `${state.width} x ${state.height}`;
+
+            // 3. Handle Preview Rendering
+            if (state.useRealServer) {
+                // Real Server Mode
+                els.previewImage.src = fullUrl;
+
+                // Reset Simulation CSS
+                els.previewWrapper.style = '';
+                els.previewImage.style = 'max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); border-radius: 0.5rem;';
+
+                // Error Fallback
+                els.previewImage.onerror = () => {
+                    els.previewImage.src = "https://placehold.co/600x400?text=Connection+Error";
+                };
+            } else {
+                // Simulation Mode (CSS Tricks)
+                els.previewImage.src = state.sourceUrl;
+                els.previewImage.onerror = null;
+
+                // Wrapper Styles (Padding, BG, Rotation, Filters)
+                // Note: Pixelate is simulated via blur roughly since CSS lacks native pixelate easily
+                const pixelateEffect = state.pixelate > 0 ? `blur(${state.pixelate / 2}px)` : '';
+
+                els.previewWrapper.style.backgroundColor = state.bgColor;
+                els.previewWrapper.style.padding = `${state.padding}px`;
+                els.previewWrapper.style.transform = `rotate(${state.rotation}deg)`;
+                els.previewWrapper.style.filter = `blur(${state.blur}px) contrast(1) brightness(1) saturate(1)`;
+
+                // Inner Image Styles (Dimensions)
+                if (state.resizeType === 'fill') {
+                    els.previewImage.style.width = `${state.width}px`;
+                    els.previewImage.style.height = `${state.height}px`;
+                    els.previewImage.style.objectFit = 'cover';
+                    els.previewImage.style.aspectRatio = `${state.width}/${state.height}`;
+                } else if (state.resizeType === 'force') {
+                    els.previewImage.style.width = '100%';
+                    els.previewImage.style.height = '100%';
+                    els.previewImage.style.objectFit = 'fill';
+                } else {
+                    // Auto / Fit (Simulated roughly as auto)
+                    els.previewImage.style.width = 'auto';
+                    els.previewImage.style.height = 'auto';
+                    // Limit to container for 'fit' look in simulation
+                    els.previewImage.style.maxWidth = `${state.width}px`;
+                    els.previewImage.style.maxHeight = `${state.height}px`;
+                    els.previewImage.style.objectFit = 'contain';
+                }
+
+                // Apply pixelate simulation to image directly
+                if (pixelateEffect) {
+                    els.previewImage.style.filter = pixelateEffect;
+                } else {
+                    els.previewImage.style.filter = 'none';
+                }
+            }
+
+            // 4. Update UI Control Visuals (Classes)
+            // Rotation Buttons
+            els.rotationBtns.forEach(btn => {
+                const deg = parseInt(btn.dataset.deg);
+                if (deg === state.rotation) {
+                    btn.className = "rotation-btn px-3 py-2 rounded-lg text-xs font-bold transition-all bg-white shadow text-indigo-600";
+                } else {
+                    btn.className = "rotation-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
+                }
+            });
+
+            // Format Buttons
+            els.formatBtns.forEach(btn => {
+                const fmt = btn.dataset.fmt;
+                if (fmt === state.extension) {
+                    btn.className = "format-btn py-3 rounded-xl text-xs font-bold uppercase transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-200";
+                } else {
+                    btn.className = "format-btn py-3 rounded-xl text-xs font-bold uppercase transition-all bg-slate-50 text-slate-500 hover:bg-slate-100";
+                }
+            });
+
+            // Text Displays
+            els.displayBgColor.textContent = state.bgColor;
+            els.valPadding.textContent = state.padding;
+            els.valBlur.textContent = state.blur;
+            els.valSharpen.textContent = state.sharpen;
+            els.valPixelate.textContent = state.pixelate;
+            els.valQuality.textContent = state.quality;
+
+            // Server Mode UI
+            if (state.useRealServer) {
+                els.serverStatusDot.className = "w-2 h-2 rounded-full bg-green-500 transition-colors";
+                els.serverStatusText.textContent = "Real Server";
+                els.inputBaseUrl.disabled = false;
+                els.inputBaseUrl.classList.remove('bg-slate-800/50', 'text-slate-500', 'cursor-not-allowed');
+                els.inputBaseUrl.classList.add('bg-slate-800', 'text-white');
+                els.serverHint.style.opacity = '0';
+            } else {
+                els.serverStatusDot.className = "w-2 h-2 rounded-full bg-amber-500 transition-colors";
+                els.serverStatusText.textContent = "Simulation";
+                els.inputBaseUrl.disabled = true;
+                els.inputBaseUrl.classList.add('bg-slate-800/50', 'text-slate-500', 'cursor-not-allowed');
+                els.inputBaseUrl.classList.remove('bg-slate-800', 'text-white');
+                els.serverHint.style.opacity = '1';
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Server Toggle
+        els.btnToggleServer.addEventListener('click', () => {
+            state.useRealServer = !state.useRealServer;
+            updateUI();
+        });
+
+        // Inputs Binding Helper
+        function bindInput(el, key, isNumber = false) {
+            el.addEventListener('input', (e) => {
+                state[key] = isNumber ? parseFloat(e.target.value) : e.target.value;
+                updateUI();
+            });
+        }
+
+        bindInput(els.inputBaseUrl, 'baseUrl');
+        bindInput(els.inputSource, 'sourceUrl');
+        bindInput(els.inputWidth, 'width', true);
+        bindInput(els.inputHeight, 'height', true);
+        bindInput(els.selectResize, 'resizeType');
+        bindInput(els.selectGravity, 'gravity');
+        bindInput(els.inputBgColor, 'bgColor');
+        bindInput(els.inputPadding, 'padding', true);
+        bindInput(els.inputBlur, 'blur', true);
+        bindInput(els.inputSharpen, 'sharpen', true);
+        bindInput(els.inputPixelate, 'pixelate', true);
+        bindInput(els.inputQuality, 'quality', true);
+
+        // Group Buttons Binding
+        els.rotationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.rotation = parseInt(btn.dataset.deg);
+                updateUI();
+            });
+        });
+
+        els.formatBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.extension = btn.dataset.fmt;
+                updateUI();
+            });
+        });
+
+        // Copy Feature
+        els.btnCopy.addEventListener('click', () => {
+            navigator.clipboard.writeText(els.outputUrl.textContent).then(() => {
+                const originalText = els.textCopy.textContent;
+                const originalIcon = els.iconCopy.getAttribute('data-lucide');
+
+                els.textCopy.textContent = "Copied";
+                els.btnCopy.classList.remove('text-slate-300');
+                els.btnCopy.classList.add('text-green-400');
+
+                // Change icon temporarily (need to re-render lucide)
+                // For simplicity, just changing text color is enough visual feedback, 
+                // but let's try to swap icon content if possible or just keep text feedback.
+
+                setTimeout(() => {
+                    els.textCopy.textContent = originalText;
+                    els.btnCopy.classList.add('text-slate-300');
+                    els.btnCopy.classList.remove('text-green-400');
+                }, 2000);
+            });
+        });
+
+        // Initialize Icons & UI
+        lucide.createIcons();
+        updateUI();
+
+    </script>
+</body>
+
+</html>
