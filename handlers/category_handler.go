@@ -2,13 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-<<<<<<< HEAD
 	"kasir-api/models"
 	"kasir-api/services"
-=======
-	"go-category-api/models"
-	"go-category-api/services"
->>>>>>> 250e41192cb496aed92524985be4d884a86af25c
 	"net/http"
 	"strconv"
 	"strings"
