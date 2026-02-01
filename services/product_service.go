@@ -1,13 +1,8 @@
 package services
 
 import (
-<<<<<<< HEAD
 	"kasir-api/models"
 	"kasir-api/repositories"
-=======
-	"go-category-api/models"
-	"go-category-api/repositories"
->>>>>>> 250e41192cb496aed92524985be4d884a86af25c
 )
 
 type ProductService struct {
