@@ -3,17 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-<<<<<<< HEAD
 	"kasir-api/database"
 	"kasir-api/repositories"
 	"kasir-api/services"
 	"kasir-api/handlers"
-=======
-	"go-category-api/database"
-	"go-category-api/repositories"
-	"go-category-api/services"
-	"go-category-api/handlers"
->>>>>>> 250e41192cb496aed92524985be4d884a86af25c
 	"net/http"
 	"strings"
 	"os"
