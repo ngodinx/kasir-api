@@ -3,11 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"errors"
-<<<<<<< HEAD
 	"kasir-api/models"
-=======
-	"go-category-api/models"
->>>>>>> 250e41192cb496aed92524985be4d884a86af25c
 )
 
 type ProductRepository struct {
