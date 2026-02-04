@@ -480,20 +480,8 @@ html[data-theme="light"] .btn-spec:hover {
   .btn-spec {
       flex: 1; /* Button takes available space */
   }
-
-  .swagger-ui .opblock-tag {
-    margin: 0 0 15px;
-  }
-
-  .swagger-ui .wrapper {
-    padding: 0 15px;
-  }
 }
 
-.swagger-ui .opblock-tag {
-    margin: 0 0 15px;
-}
-
-.swagger-ui .wrapper {
-    padding: 0 15px;
+.operation-tag-content {
+    margin-top: 10px;
 }
